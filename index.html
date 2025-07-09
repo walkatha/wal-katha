@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       gap: 10px;
-      background: transparent;
     }
     .ad-block {
       width: 160px;
       height: 600px;
+      background: transparent;
     }
   </style>
 </head>
@@ -24,14 +25,13 @@
 
   <script>
     const adKey = 'c10f096e18bf397a19574afffafaa3ca';
-    const containers = ['ad1', 'ad2', 'ad3'];
-    let loadedCount = 0;
+    const blocks = ['ad1', 'ad2', 'ad3'];
+    let loaded = 0;
 
-    containers.forEach(id => {
-      const container = document.getElementById(id);
-
-      const config = document.createElement("script");
-      config.innerHTML = `
+    blocks.forEach(id => {
+      const el = document.getElementById(id);
+      const configScript = document.createElement("script");
+      configScript.innerHTML = `
         atOptions = {
           'key': '${adKey}',
           'format': 'iframe',
@@ -40,26 +40,25 @@
           'params': {}
         };
       `;
+      const invokeScript = document.createElement("script");
+      invokeScript.src = "//railroadignorant.com/" + adKey + "/invoke.js";
 
-      const loader = document.createElement("script");
-      loader.src = `//railroadignorant.com/${adKey}/invoke.js`;
-      loader.onload = () => {
-        loadedCount++;
-        if (loadedCount === 1) {
-          // Ad successfully shown
+      invokeScript.onload = () => {
+        loaded++;
+        if (loaded === 1) {
           setTimeout(() => {
             window.parent.postMessage({ adLoaded: true }, "*");
           }, 300);
         }
       };
 
-      container.appendChild(config);
-      container.appendChild(loader);
+      el.appendChild(configScript);
+      el.appendChild(invokeScript);
     });
 
-    // Remove all if none loaded
+    // Remove all if nothing loads in 8s
     setTimeout(() => {
-      if (loadedCount === 0) {
+      if (loaded === 0) {
         document.body.innerHTML = '';
         window.parent.postMessage({ adLoaded: false }, "*");
       }
