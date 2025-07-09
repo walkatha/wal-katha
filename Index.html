@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      background: transparent;
+    }
+    .ad-slot {
+      width: 160px;
+      height: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ad-slot" id="ad1"></div>
+  <div class="ad-slot" id="ad2"></div>
+  <div class="ad-slot" id="ad3"></div>
+
+  <script>
+    const adKey = 'c10f096e18bf397a19574afffafaa3ca';
+    const ids = ['ad1', 'ad2', 'ad3'];
+    let adLoaded = false;
+
+    ids.forEach((id, index) => {
+      const el = document.getElementById(id);
+      const s1 = document.createElement('script');
+      s1.innerHTML = `
+        atOptions = {
+          'key': '${adKey}',
+          'format': 'iframe',
+          'height': 600,
+          'width': 160,
+          'params': {}
+        };
+      `;
+      const s2 = document.createElement('script');
+      s2.src = "//railroadignorant.com/" + adKey + "/invoke.js";
+      s2.onload = () => {
+        if (!adLoaded) {
+          adLoaded = true;
+          // Inform parent window ad loaded
+          window.parent.postMessage({ adLoaded: true }, "*");
+        }
+      };
+      el.appendChild(s1);
+      el.appendChild(s2);
+    });
+
+    // Auto-close after 10s if no ads
+    setTimeout(() => {
+      if (!adLoaded) {
+        // Hide everything (so iframe won't show)
+        document.body.innerHTML = '';
+        window.parent.postMessage({ adLoaded: false }, "*");
+      }
+    }, 10000);
+  </script>
+</body>
+</html>
