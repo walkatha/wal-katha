@@ -6,31 +6,32 @@
     body {
       margin: 0;
       padding: 0;
+      background: transparent;
       display: flex;
       justify-content: center;
       gap: 10px;
-      background: transparent;
     }
-    .ad-slot {
+    .ad-box {
       width: 160px;
       height: 600px;
     }
   </style>
 </head>
 <body>
-  <div class="ad-slot" id="ad1"></div>
-  <div class="ad-slot" id="ad2"></div>
-  <div class="ad-slot" id="ad3"></div>
+  <div class="ad-box" id="ad1"></div>
+  <div class="ad-box" id="ad2"></div>
+  <div class="ad-box" id="ad3"></div>
 
   <script>
     const adKey = 'c10f096e18bf397a19574afffafaa3ca';
-    const ids = ['ad1', 'ad2', 'ad3'];
-    let adLoaded = false;
+    const adIds = ['ad1', 'ad2', 'ad3'];
+    let loaded = 0;
 
-    ids.forEach((id, index) => {
-      const el = document.getElementById(id);
-      const s1 = document.createElement('script');
-      s1.innerHTML = `
+    adIds.forEach((id, index) => {
+      const container = document.getElementById(id);
+
+      const configScript = document.createElement('script');
+      configScript.innerHTML = `
         atOptions = {
           'key': '${adKey}',
           'format': 'iframe',
@@ -39,24 +40,27 @@
           'params': {}
         };
       `;
-      const s2 = document.createElement('script');
-      s2.src = "//railroadignorant.com/" + adKey + "/invoke.js";
-      s2.onload = () => {
-        if (!adLoaded) {
-          adLoaded = true;
-          // Inform parent window ad loaded
-          window.parent.postMessage({ adLoaded: true }, "*");
+
+      const loadScript = document.createElement('script');
+      loadScript.src = "//railroadignorant.com/" + adKey + "/invoke.js";
+
+      loadScript.onload = () => {
+        loaded++;
+        if (loaded === 1) {
+          setTimeout(() => {
+            window.parent.postMessage({ adLoaded: true }, "*");
+          }, 300);
         }
       };
-      el.appendChild(s1);
-      el.appendChild(s2);
+
+      container.appendChild(configScript);
+      container.appendChild(loadScript);
     });
 
-    // Auto-close after 10s if no ads
+    // Hide ad if nothing loads after 10s
     setTimeout(() => {
-      if (!adLoaded) {
-        // Hide everything (so iframe won't show)
-        document.body.innerHTML = '';
+      if (loaded === 0) {
+        document.body.innerHTML = ''; // hide all
         window.parent.postMessage({ adLoaded: false }, "*");
       }
     }, 10000);
